@@ -1,0 +1,76 @@
+---
+title: "Consulting"
+author: "Marvin Chen"
+date: '2022-11-23'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+library(tidyverse)
+library(aod)
+library(car)
+```
+
+```{r}
+data <- read_xlsx("DATA for DDW 2023 - deidentified.xlsx")
+
+```
+
+
+```{r}
+data <- data %>% rename(TG = EAC)
+data <- data[1:317,]
+usevariable <- c("TG","Stage","PMH GERD","Sx GERD","Sx GERD > 1 year","Hiccups","Night Sweats","Nausea","Vomit","Regurgitation","Chest Pain", "Food Impaction","Dysphagia","Odynophagia","Early Satiety","Abdominal Pain","Dyspepsia","Bloating","Anemia","IDA","Bleeding: melena","Bleeding: hematochezia","Bleeding: hematemesis","Fatigue","Constipation","Diarrhea","Coffee Ground Emesis","Weight loss")
+
+predicter <- c("PMH GERD","Sx GERD","Sx GERD > 1 year","Hiccups","Night Sweats","Nausea","Vomit","Regurgitation","Chest Pain", "Food Impaction","Dysphagia","Odynophagia","Early Satiety","Abdominal Pain","Dyspepsia","Bloating","Anemia","IDA","Bleeding: melena","Bleeding: hematochezia","Bleeding: hematemesis","Fatigue","Constipation","Diarrhea","Coffee Ground Emesis","Weight loss")
+data1 <- data %>% select(usevariable)
+data1 =data.frame(data1)
+data1[is.na(data1)]<-0
+data1 = apply(data1,2,as.numeric) 
+data1 =data.frame(data1)
+data1[3]
+colname <- colnames(data1)
+colname
+head(data1[3])
+
+x <- as.name(predicter)
+x
+predicter[1]
+data1
+
+colname <- colnames(data1)
+colname
+
+```
+
+
+
+```{r}
+colname <- colname[3:length(colname)]
+
+modelall <- lapply(colname, function(x) {
+  glm(substitute(i ~ TG+Stage, list(i = as.name(x))), family = "binomial", data = data1)})
+
+
+
+```
+```{r}
+
+pv <- matrix(nrow = 0,ncol = 3)
+
+
+for(i in 1:length(modelall)){
+  test <- modelall[i]
+  t <- summary(test[[1]])
+  pv <- rbind(pv,(coef(t)[,4]))
+}
+
+
+
+
+```
