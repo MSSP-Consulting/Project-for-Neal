@@ -15,19 +15,20 @@ library(tidyverse)
 library(aod)
 library(car)
 ```
-
+Read data
 ```{r}
 data <- read_xlsx("DATA for DDW 2023 - deidentified.xlsx")
-
 ```
 
-
+Data cleaning
 ```{r}
 data <- data %>% rename(TG = EAC)
 data <- data[1:317,]
-usevariable <- c("TG","Stage","PMH GERD","Sx GERD","Sx GERD > 1 year","Hiccups","Night Sweats","Nausea","Vomit","Regurgitation","Chest Pain", "Food Impaction","Dysphagia","Odynophagia","Early Satiety","Abdominal Pain","Dyspepsia","Bloating","Anemia","IDA","Bleeding: melena","Bleeding: hematochezia","Bleeding: hematemesis","Fatigue","Constipation","Diarrhea","Coffee Ground Emesis","Weight loss")
+colname <- colnames(data)
+colname
+usevariable <- c("TG","Stage","PMH GERD","Sx GERD","Sx GERD > 1 year","Hiccups","Night Sweats","Nausea","Vomit","Regurgitation","Chest Pain", "Food Impaction","Dysphagia","Odynophagia","Early Satiety","Abdominal Pain","Dyspepsia","Bloating","Anemia","IDA","Bleeding: melena","Bleeding: hematochezia","Bleeding: hematemesis","Fatigue","Constipation","Diarrhea","Coffee Ground Emesis","Weight loss","%  Wt  Loss","Finding On Workup of Other Symptoms","Asymptomatic (Incidental)","Asymptomatic (Surveillance)","Other")
 
-predicter <- c("PMH GERD","Sx GERD","Sx GERD > 1 year","Hiccups","Night Sweats","Nausea","Vomit","Regurgitation","Chest Pain", "Food Impaction","Dysphagia","Odynophagia","Early Satiety","Abdominal Pain","Dyspepsia","Bloating","Anemia","IDA","Bleeding: melena","Bleeding: hematochezia","Bleeding: hematemesis","Fatigue","Constipation","Diarrhea","Coffee Ground Emesis","Weight loss")
+predicter <- c("PMH GERD","Sx GERD","Sx GERD > 1 year","Hiccups","Night Sweats","Nausea","Vomit","Regurgitation","Chest Pain", "Food Impaction","Dysphagia","Odynophagia","Early Satiety","Abdominal Pain","Dyspepsia","Bloating","Anemia","IDA","Bleeding: melena","Bleeding: hematochezia","Bleeding: hematemesis","Fatigue","Constipation","Diarrhea","Coffee Ground Emesis","Weight loss","%  Wt  Loss","Finding On Workup of Other Symptoms","Asymptomatic (Incidental)","Asymptomatic (Surveillance)","Other")
 data1 <- data %>% select(usevariable)
 data1 =data.frame(data1)
 data1[is.na(data1)]<-0
@@ -49,7 +50,7 @@ colname
 ```
 
 
-
+Fit model
 ```{r}
 colname <- colname[3:length(colname)]
 
@@ -59,6 +60,7 @@ modelall <- lapply(colname, function(x) {
 
 
 ```
+Creat p-value table and adjust it.
 ```{r}
 
 pv <- matrix(nrow = 0,ncol = 3)
@@ -70,7 +72,17 @@ for(i in 1:length(modelall)){
   pv <- rbind(pv,(coef(t)[,4]))
 }
 
-
-
+pv <- as.data.frame(pv)
+rownames(pv) <- predicter
+colnames(pv) <-c("intercept","TG","Stage")
+tem1 <- p.adjust(pv[,1], method = "bonferroni")
+tem2 <- p.adjust(pv[,2], method = "bonferroni")
+tem3 <- p.adjust(pv[,2], method = "bonferroni")
+adp <- cbind(tem1,tem2,tem3)
+adp <- as.data.frame(adp)
+rownames(adp) <- predicter
+colnames(adp) <-c("intercept","TG","Stage")
+write.csv(pv,file = "pv.csv")
+write.csv(adp,file = "adp.csv")
 
 ```
